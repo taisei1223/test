@@ -7,18 +7,19 @@
         <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     </head>
     <body>
-        <pr-script>
-            import csv
-            def read_csv():
-                with open(filepath, encoding='utf8', newline='') as f:
-                    csvreader = csv.reader(f)
-                    content = [row for row in csvreader]   
-                return content
-            
+        <py-config>
+            packages = ["pandas","ssl"]
+        </py-config>
 
-            filepath="https://github.com/taisei1223/create_game/blob/main/onepice.csv"
-            content=read_csv()
-            print(content)
+        <pr-script>
+            import pandas as pd 
+            import ssl 
+
+            filepath=r"https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+            df=pd.read_csv(filepath)
+            data=df.values.tolist()
+
+            print(data)
         </pr-script>
     </body>
 
