@@ -1,46 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
-    <title>クイズアプリ</title>
-  </head>
-  <body>
-    <div>
-      <!-- ↓クイズのタイトルをh2の中に書こう↓ -->
-      <h2>この人は誰？？？</h2>
-      <!-- ↓<img>タグを使って画像を表示しよう↓ -->
-      <img
-        src="https://i.ytimg.com/vi/pnzWQbWeBS8/maxresdefault.jpg"
-        alt=""
-        width="300px"
-        height="200px"
-      />
-      <div>
-        <!-- それぞれid="choice-1",id="choice-2",id="choice-3"を持つ<button></button>タグを記述 -->
-        <button id="choice-1">amazarashi</button>
-        <button id="choice-2">radwimps</button>
-        <button id="choice-3">米津玄氏</button>
-      </div>
-      <!-- ↓id="feedback"を持つ<div></div>を記述↓ -->
-      <div id="feedback"></div>
-    </div>
-    <script>
-      const choice1 = document.getElementById("choice-1");
-      const choice2 = document.getElementById("choice-2");
-      const choice3 = document.getElementById("choice-3");
-      const feedback = document.getElementById("feedback");
+    <head>
+        <meta charset="UTF-8">
+        <title>test html </title>
+        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    </head>
+    <body>
+        <pr-script>
+            import csv
+            def read_csv():
+                with open(filepath, encoding='utf8', newline='') as f:
+                    csvreader = csv.reader(f)
+                    content = [row for row in csvreader]   
+                return content
+            
 
-      choice1.onclick = function () {
-        feedback.textContent = "あたり！！！";
-      };
-      choice2.onclick = function () {
-        feedback.textContent = "はずれ！！！！";
-      };
-      choice3.onclick = function () {
-        feedback.textContent = "はずれ！！！！";
-      };
-    </script>
-  </body>
+            filepath="https://github.com/taisei1223/create_game/blob/main/onepice.csv"
+            content=read_csv()
+            print(content)
+        </pr-script>
+    </body>
+
+
+
 </html>
