@@ -6,20 +6,63 @@
 	<py-env>
       - pandas
       - ssl
+      - random
+      
     </py-env>
   </head>
   <body>
     <!-- <div id="canvas" align="center"></div> -->
 	  
     <py-script >
+#ライブラリインポート
 import pandas as pd 
 import ssl 
 from pyodide.http import open_url 
 
-filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+#csvファイル読みとり関数
+def read_csv():
 df=pd.read_csv(open_url(filepath))
-data=df.values.tolist()
-data
+content=df.values.tolist()
+return content
+
+#ランダムに問題摘出
+def random_quiz(quiz):
+question = random.choice(quiz)
+print("質問: " + question["question"])
+for i, choice in enumerate(question["choices"], 1):
+print(f"{i}. {choice}")
+return question
+
+#ユーザの解答が正解かチェックする
+def check_answer(question, user_answer):
+correct_answer = question["answer"]
+if question["choices"][user_answer - 1] == correct_answer:
+print("正解！")
+else:
+print(f"不正解。正解は {correct_answer} です。")
+
+
+#クイズ定義
+quizs=[]
+
+#csv読み取り
+filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+content=read_csv()
+
+for i in range(0,100):
+quiz_base=content[i]
+quiz={
+"question":quiz_base[0],
+"answer":quiz_base[1],
+"choices":[quiz_base[2],quiz_base[3],quiz_base[4],quiz_base[5]]
+}
+quizs.append(quiz)
+
+print(quizs)
+print("============================================================")
+
+selected_question = random_quiz(quizs)
+selected_quesion
 </py-script>
   </body>
 </html>
