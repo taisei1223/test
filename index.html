@@ -1,28 +1,26 @@
 <!DOCTYPE html>
-<html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>test html </title>
-        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
-        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    </head>
-    <body>
-        <py-config>
-            packages = ["pandas","ssl"]
-        </py-config>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css"/>
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+	<py-env>
+      - pandas
+      - ssl
+    </py-env>
+  </head>
+  <body>
+    <!-- <div id="canvas" align="center"></div> -->
+	  
+    <py-script >
+import pandas as pd 
+import ssl 
+from pyodide.http import open_url 
 
-        <pr-script>
-            import pandas as pd 
-            import ssl 
-
-            filepath=r"https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
-            df=pd.read_csv(filepath)
-            data=df.values.tolist()
-
-            print(data)
-        </pr-script>
-    </body>
-
-
-
+filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+df=pd.read_csv(open_url(filepath))
+data=df.values.tolist()
+data
+</py-script>
+  </body>
 </html>
+
