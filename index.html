@@ -1,73 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Onepice_title_quiz</title>
-  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-  <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-  <py-config>
-    packages = ["pandas","ssl"]
-</py-config>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyScript Radio Button Example</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <py-config>
+      packages = ["pandas","ssl"]
+    </py-config>
 </head>
 <body>
-  <div id="quiz-container"></div>
-  <label id="lb" style="color:balck"></label>
-  <form id="radioForm">
-    <!-- ラジオボタンがここに追加されます -->
-  </form>
-  <button id="submitBtn">Submit</button>
+    <label id="lb" style="color:balck"></label>
+    <form id="radioForm">
+        <!-- ラジオボタンがここに追加されます -->
+    </form>
+    <button id="submitBtn">Submit</button>
+    <p id="result"></p>
 
+    <py-script>
+      import pandas as pd
+      import random
+      from pyodide.http import open_url
+      from pyscript import Element
 
-  <py-script > 
-  import pandas as pd
-  import random
-  from pyodide.http import open_url
+      def read_csv(filepath):
+        df=pd.read_csv(open_url(filepath))
+        data=df.values.tolist()
+        return data
+      
+      def random_quiz(max_num,content):
+        randomnum=random.randint(1,max_num)
+        quiz=content[randomnum]
+        return quiz
 
-  def read_csv(filepath):
-    df=pd.read_csv(open_url(filepath))
-    data=df.values.tolist()
-    return data
-  
-  def random_quiz(max_num,content):
-    randomnum=random.randint(1,max_num)
-    quiz=content[randomnum]
-    return quiz
+      filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+      content =read_csv(filepath)
 
-  def check_answer(user,answer):
-    if user==answer:
-      print("正解！")
-    
-    else:
-      print("不正解。正解は"+str(answer)+"でした。")
+      max_num=len(content)
 
+      quiz=random_quiz(max_num,content)
 
-  
-  filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
-  content =read_csv(filepath)
-  
-  max_num=len(content)
-  
-  quiz=random_quiz(max_num,content)
-  
-  if len(quiz)==6:
-    question=quiz[0]
-    answer=quiz[1]
-    options = [quiz[2], quiz[3], quiz[4],quiz[5]]
- 
-    pyscript.write("lb",question)
-    form = Element("radioForm")
-    for option in options:
-      new_radio = f'<label><input type="radio" name="option" value="{option}"> {option}</label><br>'
-      form.element.innerHTML += new_radio
-    
-    
-  else:
-    print(len(quiz))
+      question=quiz[0]
+      correct_option =quiz[1]
+      options = [quiz[2], quiz[3], quiz[4],quiz[5]]
 
-   
-  submit_btn = Element("submitBtn")
-   </py-scripts> 
+      pyscript.write("lb",question)
+      form = Element("radioForm")
+      for option in options:
+        new_radio = f'<label><input type="radio" name="option" value="{option}"> {option}</label><br>'
+        form.element.innerHTML += new_radio
+
+      def show_selected_option(event):
+        selected_option = None
+        for radio in form.element.querySelectorAll('input[name="option"]'):
+            if radio.checked:
+                selected_option = radio.value
+                break
+
+        result = Element("result")
+        if selected_option == correct_option:
+            result.element.innerHTML = "正解です！"
+        else:
+            result.element.innerHTML = "不正解です。"
+
+      submit_btn = Element("submitBtn")
+      submit_btn.element.onclick = show_selected_option
+    </py-script>
 </body>
 </html>
-
