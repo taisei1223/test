@@ -3,18 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sine Wave</title>
-  <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
-  <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+  <title>Onepice_title_quiz</title>
+  <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+  <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  <py-config>
+    packages = ["pandas","ssl"]
+</py-config>
 </head>
 <body>
-	<py-env>
-    - pandas
-    - ssl
-  </py-env>
-</head>
-<body>
-  <!-- <div id="canvas" align="center"></div> -->
+  <div id="quiz-container"></div>
+  <label id="lb" style="color:balck"></label>
+  <form id="radioForm">
+    <!-- ラジオボタンがここに追加されます -->
+  </form>
+  <button id="submitBtn">Submit</button>
+
 
   <py-script > 
   import pandas as pd
@@ -26,35 +29,45 @@
     data=df.values.tolist()
     return data
   
-  def random_quiz(quizs):
-    question_choice = random.choice(quizs)
-    question=question_choice["question"]
-    choice_0=question_choice["choices"][0]
-    choice_1=question_choice["choices"][1]
-    choice_2=question_choice["choices"][2]
-    choice_3=question_choice["choices"][3]
-    answer=question_choice["answer"]
-    all=[question,choice_0,choice_1,choice_2,choice_3,answer]
-    return all 
+  def random_quiz(max_num,content):
+    randomnum=random.randint(1,max_num)
+    quiz=content[randomnum]
+    return quiz
+
+  def check_answer(user,answer):
+    if user==answer:
+      print("正解！")
     
+    else:
+      print("不正解。正解は"+str(answer)+"でした。")
+
+
   
-  
-  quizs=[]
   filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
   content =read_csv(filepath)
-
-  for i in range(0,100):
-    quiz_base=content[i]
-    quiz={
-    "question":quiz_base[0],
-    "answer":quiz_base[1],
-    "choices":[quiz_base[2],quiz_base[3],quiz_base[4],quiz_base[5]]
-    }
-    quizs.append(quiz)
-
-  random_quiz(quizs)
   
+  max_num=len(content)
+  
+  quiz=random_quiz(max_num,content)
+  
+  if len(quiz)==6:
+    question=quiz[0]
+    answer=quiz[1]
+    options = [quiz[2], quiz[3], quiz[4],quiz[5]]
+ 
+    pyscript.write("lb",question)
+    form = Element("radioForm")
+    for option in options:
+      new_radio = f'<label><input type="radio" name="option" value="{option}"> {option}</label><br>'
+      form.element.innerHTML += new_radio
+    
+    
+  else:
+    print(len(quiz))
 
+   
+  submit_btn = Element("submitBtn")
+   </py-scripts> 
 </body>
 </html>
 
