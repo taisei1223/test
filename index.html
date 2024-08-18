@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ワンピース　タイトル問題</title>
+    <title>One Piece Title Quiz</title>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <py-config>
-      packages = ["pandas","ssl"]
+      packages = ["pandas"]
     </py-config>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -28,7 +26,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             max-width: 400px;
             width: 100%;
-            box-sizing: border-box;
         }
         label {
             display: block;
@@ -37,6 +34,14 @@
         }
         form {
             margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
         button {
             padding: 10px 20px;
@@ -58,62 +63,82 @@
 </head>
 <body>
     <div class="container">
-        <label id="lb" style="color:black"></label>
-        <form id="radioForm">
-            <!-- ラジオボタンがここに追加されます -->
+        <label id="questionLabel">Loading question...</label>
+        <form id="quizForm">
+            <input type="text" id="answerInput" placeholder="Type your answer here">
         </form>
-        <button id="submitBtn">解答</button>
+        <button id="submitBtn">Submit</button>
         <p id="result"></p>
     </div>
 
+    <!-- Audio elements for feedback -->
+    <audio id="correctSound" src="https://github.com/taisei1223/create_game/blob/main/audio/correct.mp3?raw=true"></audio>
+    <audio id="incorrectSound" src="https://github.com/taisei1223/create_game/blob/main/audio/incorrect.mp3?raw=true"></audio>
+
     <py-script>
-      import pandas as pd
-      import random
-      from pyodide.http import open_url
-      from pyscript import Element
+        import pandas as pd
+        import random
+        from pyodide.http import open_url
+        from pyscript import Element
 
-      def read_csv(filepath):
-        df=pd.read_csv(open_url(filepath))
-        data=df.values.tolist()
-        return data
-      
-      def random_quiz(max_num,content):
-        randomnum=random.randint(1,max_num)
-        quiz=content[randomnum]
-        return quiz
+        # CSVファイルの読み込み
+        def load_quiz_data():
+            try:
+                url = "https://raw.githubusercontent.com/taisei1223/create_game/main/onepice_titiles.csv"
+                df = pd.read_csv(open_url(url), header=None)
+                return df.values.tolist()
+            except Exception as e:
+                Element("questionLabel").element.innerText = "Failed to load quiz data."
+                print(f"Error loading quiz data: {e}")
+                return []
 
-      filepath="https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
-      content =read_csv(filepath)
-
-      max_num=len(content)
-
-      quiz=random_quiz(max_num,content)
-
-      question=quiz[0]
-      correct_option =quiz[1]
-      options = [quiz[2], quiz[3], quiz[4],quiz[5]]
-
-      pyscript.write("lb",question)
-      form = Element("radioForm")
-      for option in options:
-        new_radio = f'<label><input type="radio" name="option" value="{option}"> {option}</label><br>'
-        form.element.innerHTML += new_radio
-
-      def show_selected_option(event):
-        selected_option = None
-        for radio in form.element.querySelectorAll('input[name="option"]'):
-            if radio.checked:
-                selected_option = radio.value
-                break
-
-        result = Element("result")
-        if selected_option == correct_option:
-            result.element.innerHTML = "正解です！"
+        # Initialize quiz data
+        quiz_data = load_quiz_data()
+        if not quiz_data:
+            Element("submitBtn").element.disabled = True
         else:
-            result.element.innerHTML = "不正解です。"
+            # Display a new quiz question
+            def display_quiz():
+                quiz = random.choice(quiz_data)
+                question_label = Element("questionLabel")
+                question_label.element.innerText = quiz[0]
+                
+                # Return the correct answer
+                return quiz[1]
 
-      submit_btn = Element("submitBtn")
-      submit_btn.element.onclick = show_selected_option
+            # Show initial quiz
+            correct_answer = display_quiz()
+
+            # Function to play sound
+            def play_sound(sound_id):
+                try:
+                    sound_element = Element(sound_id).element
+                    sound_element.play()
+                except Exception as e:
+                    print(f"Error playing sound: {e}")
+
+            # Function to check the user's answer
+            def check_answer():
+                input_element = Element("answerInput")
+                user_answer = input_element.element.value.strip().lower()
+                result = Element("result")
+                
+                if user_answer == correct_answer.lower():
+                    result.element.innerText = "Correct!"
+                    play_sound("correctSound")  # Play correct answer sound
+                else:
+                    result.element.innerText = f"Wrong! The correct answer is {correct_answer}."
+                    play_sound("incorrectSound")  # Play incorrect answer sound
+
+            # Function to handle submit button click
+            def on_submit(event):
+                check_answer()
+                global correct_answer
+                correct_answer = display_quiz()
+
+            # Setup submit button click event
+            submit_btn = Element("submitBtn")
+            submit_btn.element.onclick = on_submit
     </py-script>
 </body>
 </html>
