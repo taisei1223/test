@@ -1,15 +1,179 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8">
-        <title>test html </title>
-        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
-        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    </head>
-    <body>
-     <h1>hello</h1>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ワンピース タイトル問題</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <py-config>
+      packages = ["pandas", "ssl"]
+    </py-config>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        p {
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 問題とスコアを表示 -->
+        <label id="lb" style="color:black"></label>
+        <p id="status"></p> <!-- 追加: 現在の問題数とスコアを表示する -->
+        <form id="radioForm">
+            <!-- ラジオボタンがここに追加されます -->
+        </form>
+        <button id="submitBtn">解答</button>
+        <p id="result"></p>
+        <button id="restartBtn" style="display:none;">もう一回行いますか？</button> <!-- 追加: もう一回ボタン -->
+    </div>
 
+    <py-script>
+      import pandas as pd
+      import random
+      from pyodide.http import open_url
+      from pyscript import Element
 
+      # スコアと問題カウントを追跡する変数
+      score = 0
+      question_count = 0
+      total_questions = 10
+      incorrect_questions = []  # 間違えた問題を保存するリスト
 
+      def read_csv(filepath):
+        df = pd.read_csv(open_url(filepath))
+        data = df.values.tolist()
+        return data
+      
+      def random_quiz(max_num, content):
+        randomnum = random.randint(0, max_num - 1)
+        quiz = content[randomnum]
+        return quiz
+
+      def load_quiz():
+        global correct_option, question_count, current_question
+        # 問題カウントをチェック
+        if question_count >= total_questions:
+            show_final_score()
+            return
+        
+        quiz = random_quiz(max_num, content)
+        current_question = quiz[0]  # 現在の問題を保存
+        correct_option = quiz[1]
+        options = [quiz[2], quiz[3], quiz[4], quiz[5]]
+        random.shuffle(options)
+    
+        # 問題とスコアの表示を更新
+        pyscript.write("lb", current_question)
+        pyscript.write("status", f"第 {question_count + 1} 問目 (スコア: {score} / {total_questions})")
+
+        form = Element("radioForm")
+        form.element.innerHTML = ""
+        for option in options:
+            new_radio = f'<label><input type="radio" name="option" value="{option}"> {option}</label><br>'
+            form.element.innerHTML += new_radio
+
+      def check_answer(event=None):
+        global score, question_count
+        selected_option = None
+        form = Element("radioForm")
+        for radio in form.element.querySelectorAll('input[name="option"]'):
+            if radio.checked:
+                selected_option = radio.value
+                break
+
+        result = Element("result")
+        if selected_option == correct_option:
+            score += 1
+            result.element.innerHTML = "正解です！次の問題に進みます。"
+        else:
+            result.element.innerHTML = "不正解です。もう一度挑戦してください。"
+            incorrect_questions.append((current_question, correct_option))  # 間違えた問題と正解を保存
+
+        question_count += 1
+        load_quiz()
+
+      def show_final_score():
+        result = Element("result")
+        result.element.innerHTML = f"クイズ終了！あなたのスコアは {score} / {total_questions} です。<br><br>"
+
+        if incorrect_questions:
+            result.element.innerHTML += "間違えた問題と正解:<br>"
+            for question, correct in incorrect_questions:
+                result.element.innerHTML += f"問題: {question}<br>正解: {correct}<br><br>"
+
+        # 「もう一回行いますか？」ボタンを表示
+        restart_btn = Element("restartBtn")
+        restart_btn.element.style.display = "block"
+
+      def reset_quiz(event=None):
+        global score, question_count, incorrect_questions
+        score = 0
+        question_count = 0
+        incorrect_questions = []
+
+        # 表示をリセット
+        pyscript.write("result", "")
+        pyscript.write("status", "")
+        Element("restartBtn").element.style.display = "none"
+
+        # 新しいクイズを開始
+        load_quiz()
+
+      filepath = "https://raw.githubusercontent.com/taisei1223/create_game/main/onepice.csv"
+      content = read_csv(filepath)
+
+      max_num = len(content)
+
+      load_quiz()
+
+      submit_btn = Element("submitBtn")
+      submit_btn.element.onclick = check_answer
+
+      # リセットボタンのイベントリスナーを追加
+      restart_btn = Element("restartBtn")
+      restart_btn.element.onclick = reset_quiz
+    </py-script>
+</body>
 </html>
