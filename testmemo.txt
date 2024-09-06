@@ -1,0 +1,18 @@
+Get-ChildItem C:\Users -Directory | ForEach-Object {
+    $makevarsPath = Join-Path $_.FullName "Documents\R\Makevars.win"
+    $testDirPath = Join-Path $_.FullName "Desktop\Test"
+    $desktopPath = Join-Path $testDirPath ("Makevars_" + $_.Name + ".win")
+
+    if (Test-Path $makevarsPath) {
+        # Testディレクトリが存在しなければ作成
+        if (-not (Test-Path $testDirPath)) {
+            New-Item -ItemType Directory -Path $testDirPath
+        }
+        # ファイルをコピー
+        Copy-Item $makevarsPath -Destination $desktopPath
+        "$($_.Name): Makevars.win copied to Desktop\Test as Makevars_$($_.Name).win"
+    }
+    else {
+        "$($_.Name): Makevars.win not found"
+    }
+}
