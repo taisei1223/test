@@ -16,3 +16,11 @@ Get-ChildItem C:\Users -Directory | ForEach-Object {
         "$($_.Name): Makevars.win not found"
     }
 }
+
+
+
+
+INSERT OVERWRITE TABLE new_parquet_table PARTITION (year, month)
+SELECT * FROM original_orc_table;
+
+
