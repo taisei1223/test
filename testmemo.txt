@@ -20,7 +20,8 @@ Get-ChildItem C:\Users -Directory | ForEach-Object {
 
 
 
-INSERT OVERWRITE TABLE new_parquet_table PARTITION (year, month)
-SELECT * FROM original_orc_table;
-
+CREATE TABLE default.r_return_report_nice
+STORED AS PARQUET
+PARTITIONED BY (partition_column)
+AS SELECT * FROM dl_pubic.r_return_report_nice;
 
