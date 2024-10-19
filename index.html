@@ -16,10 +16,16 @@
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/main/extra.py"></py-script>
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/refs/heads/main/hello.py"></py-script>
     <py-script>
+        <!--関数を表示-->
         result = main()
+        print(result)
 
+        <!--実行ファイル②からhello関数を呼び出し-->
         hello=hello()
-
+        
+        <!--htmlのvlaue タグに対して hello変数を格納-->
+        values = Element("values")
+        values.element.innerText = hello
 
 
     </py-script>
