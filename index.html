@@ -2,14 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ああああああああ</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <title>External Script with PyScript</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
-    <section class="pyscript">
-        <div id="myplot"></div>
-        <script type="py" src="./extra.py" config="./pyscript.toml"></script>
-    </section>
+    <py-script src="https://raw.githubusercontent.com/taisei1223/test/main/extra.py"></py-script>
+    <py-script>
+        result = main()
+        print(result)
+    </py-script>
 </body>
 </html>
