@@ -8,15 +8,8 @@
 </head>
 <body>
     <py-script>
-        from js import fetch
-        import asyncio
+            <script type="py" src="./extra.py" config="./pyscript.toml"></script>
 
-        async def load_external_script():
-            response = await fetch('https://raw.githubusercontent.com/taisei1223/test/refs/heads/main/extra.py)
-            content = await response.text()
-            exec(content)
-
-        asyncio.ensure_future(load_external_script())
     </py-script>
 </body>
 </html>
