@@ -1,27 +1,9 @@
-Get-ChildItem C:\Users -Directory | ForEach-Object {
-    $makevarsPath = Join-Path $_.FullName "Documents\R\Makevars.win"
-    $testDirPath = Join-Path $_.FullName "Desktop\Test"
-    $desktopPath = Join-Path $testDirPath ("Makevars_" + $_.Name + ".win")
+■index.html 
+github 上に配置された python ファイルを　pyscript で読み込むには、
+<py-script>　row 形式のURL　</py-script>
+<py-script>　関数呼び出し　</py-scrpt>
 
-    if (Test-Path $makevarsPath) {
-        # Testディレクトリが存在しなければ作成
-        if (-not (Test-Path $testDirPath)) {
-            New-Item -ItemType Directory -Path $testDirPath
-        }
-        # ファイルをコピー
-        Copy-Item $makevarsPath -Destination $desktopPath
-        "$($_.Name): Makevars.win copied to Desktop\Test as Makevars_$($_.Name).win"
-    }
-    else {
-        "$($_.Name): Makevars.win not found"
-    }
-}
+を行わないといけない
 
-
-
-
-CREATE TABLE default.r_return_report_nice
-STORED AS PARQUET
-PARTITIONED BY (partition_column)
-AS SELECT * FROM dl_pubic.r_return_report_nice;
-
+■疑問
+複数ファイルを読み込む場合は？
