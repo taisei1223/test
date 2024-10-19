@@ -16,16 +16,9 @@
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/main/extra.py"></py-script>
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/refs/heads/main/hello.py"></py-script>
     <py-script>
-        
-        <!--実行ファイル①の関数を呼び出す-->
+        result = main()
+
         hello=hello()
-
-        <!--関数をhtmlのvaluesに書き込む 👇うまくいっていない-->
-        values = document.getElementById("values")
-        values.innerText = hello
-
-        df=main()
-        show(df)
 
 
 
