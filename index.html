@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One Piece Title Quiz</title>
+    <title>pyscript_load_external_pythonscript</title>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <py-config>
@@ -71,74 +71,10 @@
         <p id="result"></p>
     </div>
 
-    <!-- Audio elements for feedback -->
-    <audio id="correctSound" src="https://github.com/taisei1223/create_game/blob/main/audio/correct.mp3?raw=true"></audio>
-    <audio id="incorrectSound" src="https://github.com/taisei1223/create_game/blob/main/audio/incorrect.mp3?raw=true"></audio>
-
     <py-script>
-        import pandas as pd
-        import random
-        from pyodide.http import open_url
-        from pyscript import Element
-
-        # CSVファイルの読み込み
-        def load_quiz_data():
-            try:
-                url = "https://raw.githubusercontent.com/taisei1223/create_game/main/onepice_titiles.csv"
-                df = pd.read_csv(open_url(url), header=None)
-                return df.values.tolist()
-            except Exception as e:
-                Element("questionLabel").element.innerText = "Failed to load quiz data."
-                print(f"Error loading quiz data: {e}")
-                return []
-
-        # Initialize quiz data
-        quiz_data = load_quiz_data()
-        if not quiz_data:
-            Element("submitBtn").element.disabled = True
-        else:
-            # Display a new quiz question
-            def display_quiz():
-                quiz = random.choice(quiz_data)
-                question_label = Element("questionLabel")
-                question_label.element.innerText = quiz[0]
-                
-                # Return the correct answer
-                return quiz[1]
-
-            # Show initial quiz
-            correct_answer = display_quiz()
-
-            # Function to play sound
-            def play_sound(sound_id):
-                try:
-                    sound_element = Element(sound_id).element
-                    sound_element.play()
-                except Exception as e:
-                    print(f"Error playing sound: {e}")
-
-            # Function to check the user's answer
-            def check_answer():
-                input_element = Element("answerInput")
-                user_answer = input_element.element.value.strip().lower()
-                result = Element("result")
-                
-                if user_answer == correct_answer.lower():
-                    result.element.innerText = "Correct!"
-                    play_sound("correctSound")  # Play correct answer sound
-                else:
-                    result.element.innerText = f"Wrong! The correct answer is {correct_answer}."
-                    play_sound("incorrectSound")  # Play incorrect answer sound
-
-            # Function to handle submit button click
-            def on_submit(event):
-                check_answer()
-                global correct_answer
-                correct_answer = display_quiz()
-
-            # Setup submit button click event
-            submit_btn = Element("submitBtn")
-            submit_btn.element.onclick = on_submit
+        from extra import main 
+        result = main()
+        print(result)
     </py-script>
 </body>
 </html>
