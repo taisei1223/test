@@ -2,79 +2,21 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pyscript_load_external_pythonscript</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <title>PyScript Example</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
-    <py-config>
-      packages = ["pandas"]
-    </py-config>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            font-size: 1em;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 1em;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        p {
-            font-size: 1.2em;
-            color: #333;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <label id="questionLabel">Loading question...</label>
-        <form id="quizForm">
-            <input type="text" id="answerInput" placeholder="Type your answer here">
-        </form>
-        <button id="submitBtn">Submit</button>
-        <p id="result"></p>
-    </div>
-
     <py-script>
-        from extra import main 
-        result = main()
-        print(result)
+        from js import fetch
+        import asyncio
+
+        async def load_external_script():
+            response = await fetch('https://raw.githubusercontent.com/taisei1223/test/refs/heads/main/extra.py)
+            content = await response.text()
+            exec(content)
+
+        asyncio.ensure_future(load_external_script())
     </py-script>
 </body>
 </html>
