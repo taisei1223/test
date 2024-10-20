@@ -10,25 +10,20 @@
 <body>
     <!-- html のフ中身-->
     <p id="values"></p>
-
-
-    <!--実行ファイルを設定しておく👇-->
+    <div class="background_test">
+        <div class="logo_test">
+            ロゴ
+        </div>
+    </div>
+    <!--実行ファイルを設定しておく-->
     <!-- 実行ファイル①df　実行ファイル②hello-->
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/main/extra.py"></py-script>
     <py-script src="https://raw.githubusercontent.com/taisei1223/test/main/hello.py"></py-script>
     <py-script>
-        <!--関数を表示-->
         result = main()
-        print(result)
-
-        <!--実行ファイル②からhello関数を呼び出し-->
-        hello=hello()
-        
-        <!--htmlのvlaue タグに対して hello変数を格納-->
+        hello = hello()
         values = Element("values")
         values.element.innerText = hello
-
-
     </py-script>
 </body>
 </html>
