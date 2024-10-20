@@ -1,0 +1,13 @@
+.logo_test {                    /* ロゴ部分の指定 */
+    text-align:  center;        /* 文字を中央揃え */
+    padding: 10px;                /* 余白指定 */
+    color:  #fff;                /* 文字の色指定 */
+    border:  solid 1px #fff;    /* 枠線指定 */
+    width: 220px;                /* 幅指定 */
+    margin:  0 auto;            /* 中央寄せ */
+    font-size: 40px;            /* 文字サイズ指定 */
+}
+
+.background_test {                /* 背景部分の指定 */
+    padding: 180px;                /* 余白指定 */
+}
