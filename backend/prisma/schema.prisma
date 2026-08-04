@@ -1,0 +1,59 @@
+// Prisma schema for the posture analysis app.
+//
+// This uses SQLite for local/self-hosted development. In the AWS target
+// architecture (see /docs/aws-architecture.md) User/Image/Measurement map
+// to DynamoDB tables and image files map to S3 objects; the schema below
+// is kept structurally close to that target so the migration is mostly a
+// storage-driver swap, not a data-model rewrite.
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite has no native enum support, so Role/View are plain strings,
+// validated at the application boundary (zod schemas in src/routes/*).
+// Role: "customer" | "trainer". View: "front" | "side".
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String?
+  role         String        @default("customer")
+  heightCm     Float? // used to calibrate pixel -> real-world distances
+  createdAt    DateTime      @default(now())
+  images       Image[]
+  measurements Measurement[]
+}
+
+model Image {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  view         String
+  filePath     String
+  width        Int
+  height       Int
+  createdAt    DateTime      @default(now())
+  measurements Measurement[]
+}
+
+model Measurement {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageId   String
+  image     Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
+  view      String
+  // Raw keypoint set used for this measurement: { [keypointName]: { x, y, score, estimated } }
+  keypoints String
+  // Computed angle / offset metrics: { [metricKey]: { value, unit, label } }
+  metrics   String
+  sessionId String? // groups a front+side pair captured together
+  createdAt DateTime @default(now())
+}
