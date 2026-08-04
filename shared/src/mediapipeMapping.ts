@@ -87,17 +87,19 @@ function toPoint(lm: MediapipeLandmark, w: number, h: number, estimated = false)
  * heuristics with a fine-tuned model (4.2.1) or 3D mesh recovery (4.2.2) is
  * future work, not implemented here.
  *
- * `facing` tells us which way the subject faces in a side-view photo, which
- * is required to tell front-of-pelvis (ASIS) from back-of-pelvis (PSIS) —
- * see the capture guide copy in the frontend for the convention shown to
- * the user ("体の右側を向けて、まっすぐ立ってください" -> facing "right").
+ * `facingHint` is only a fallback for when the eye/ear landmarks aren't
+ * usable — the actual facing direction (needed to tell front-of-pelvis
+ * (ASIS) from back-of-pelvis (PSIS)) is auto-detected per photo from the
+ * eye/ear pair (the eye sits in front of the ear along the facing
+ * direction), since a real user can turn either way in frame regardless of
+ * the capture guide copy ("体の右側を向けて、まっすぐ立ってください").
  */
 export function mapMediapipeLandmarks(
   landmarks: MediapipeLandmark[],
   imageWidth: number,
   imageHeight: number,
   view: View,
-  facing: "left" | "right" = "right"
+  facingHint: "left" | "right" = "right"
 ): KeypointMap {
   const p = (idx: number, estimated = false) => toPoint(landmarks[idx], imageWidth, imageHeight, estimated);
 
@@ -153,7 +155,12 @@ export function mapMediapipeLandmarks(
     };
 
     const torsoDepthProxy = dist(shoulderR, hipR) * 0.25;
-    const dir = facing === "right" ? 1 : -1;
+    // Auto-detect facing direction from the eye/ear pair (eye = front of
+    // head, ear = back of head) so ASIS/PSIS placement matches the actual
+    // photo instead of an assumed constant direction; this must use the
+    // same detection rule as computeFrontBackMetrics' detectFacingDir so
+    // the two stay consistent.
+    const dir = rightEye.x === earR.x ? (facingHint === "right" ? 1 : -1) : rightEye.x > earR.x ? 1 : -1;
     const asisR: Point2D = {
       x: hipR.x + dir * torsoDepthProxy * 0.5,
       y: hipR.y - torsoDepthProxy * 0.1,

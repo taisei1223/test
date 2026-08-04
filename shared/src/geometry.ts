@@ -40,6 +40,41 @@ export function angleFromHorizontal(a: Vec2, b: Vec2): number {
   return Math.atan2(v.y, v.x) * RAD2DEG;
 }
 
+/**
+ * Same as {@link angleFromVertical}, but the horizontal (x) component is
+ * first multiplied by `forwardSign`. Side-view (front-back) metrics need
+ * this because a photographed subject can face either direction in the
+ * frame (image +x is "forward" for one facing direction and "backward"
+ * for the other); without normalizing by the detected facing direction, a
+ * physically neutral pose would compute near 0 for one facing direction
+ * and near +/-180 for the other. See {@link angleFromHorizontalSigned}.
+ */
+export function angleFromVerticalSigned(a: Vec2, b: Vec2, forwardSign: 1 | -1): number {
+  const v = subtract(b, a);
+  return Math.atan2(forwardSign * v.x, -v.y) * RAD2DEG;
+}
+
+/**
+ * Same as {@link angleFromHorizontal}, but the horizontal (x) component of
+ * the a->b vector is multiplied by `forwardSign` first, so the result is 0
+ * for a level a->b segment regardless of which way the subject faces in
+ * the frame. Call with `a` = the anatomically-posterior point and `b` =
+ * the anatomically-anterior point (e.g. ear->eye, PSIS->ASIS).
+ */
+export function angleFromHorizontalSigned(a: Vec2, b: Vec2, forwardSign: 1 | -1): number {
+  const v = subtract(b, a);
+  return Math.atan2(v.y, forwardSign * v.x) * RAD2DEG;
+}
+
+/**
+ * Same as {@link horizontalOffset}, normalized by `forwardSign` so the sign
+ * consistently means "toward the front" / "toward the back" regardless of
+ * which way the subject faces in the frame.
+ */
+export function horizontalOffsetSigned(linePoint: Vec2, target: Vec2, forwardSign: 1 | -1): number {
+  return forwardSign * (target.x - linePoint.x);
+}
+
 /** Unsigned angle (degrees) between segment p1->p2 and segment p2->p3, at the shared vertex p2. */
 export function angleBetweenSegments(p1: Vec2, p2: Vec2, p3: Vec2): number {
   const v1 = subtract(p1, p2);

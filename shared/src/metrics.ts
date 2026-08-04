@@ -4,9 +4,12 @@ import {
   midpoint,
   distance,
   angleFromVertical,
+  angleFromVerticalSigned,
   angleFromHorizontal,
+  angleFromHorizontalSigned,
   angleBetweenSegments,
   horizontalOffset,
+  horizontalOffsetSigned,
 } from "./geometry";
 
 export type MetricUnit = "deg" | "px" | "cm";
@@ -147,7 +150,11 @@ export function computeLeftRightMetrics(kp: KeypointMap): MetricResult[] {
         const l = pick(kp, "shoulderL");
         const r = pick(kp, "shoulderR");
         if (!l || !r) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromHorizontal(l, r), estimated: l.estimated || r.estimated, available: true };
+        // In a normal (non-selfie-mirrored) front photo the subject's
+        // anatomical left shoulder appears on the image's right (larger x)
+        // and vice versa, so the "0 = level" reference direction runs
+        // right-shoulder -> left-shoulder, not left -> right.
+        return { value: angleFromHorizontal(r, l), estimated: l.estimated || r.estimated, available: true };
       },
     },
     {
@@ -163,7 +170,8 @@ export function computeLeftRightMetrics(kp: KeypointMap): MetricResult[] {
         const l = pick(kp, "trochanterL");
         const r = pick(kp, "trochanterR");
         if (!l || !r) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromHorizontal(l, r), estimated: l.estimated || r.estimated, available: true };
+        // Same left/right image-position convention as shoulderLR above.
+        return { value: angleFromHorizontal(r, l), estimated: l.estimated || r.estimated, available: true };
       },
     },
     {
@@ -181,9 +189,29 @@ export function computeLeftRightMetrics(kp: KeypointMap): MetricResult[] {
   });
 }
 
+/**
+ * A side-view subject can face either direction in the frame (nothing
+ * pins "forward" to +x or -x in image space), so every front-back metric
+ * must be normalized by the actual facing direction or a physically
+ * neutral pose will read as ~180 deg for one facing direction and ~0 deg
+ * for the other. Detected from the eye/ear pair: the eye (front of the
+ * head) sits further in the facing direction than the ear (back of the
+ * head). Falls back to "+1" (treated as facing image-right) when eye/ear
+ * aren't both available.
+ */
+function detectFacingDir(kp: KeypointMap): 1 | -1 {
+  const earR = pick(kp, "earR");
+  const eyeR = pick(kp, "eyeR");
+  if (earR && eyeR && eyeR.x !== earR.x) {
+    return eyeR.x >= earR.x ? 1 : -1;
+  }
+  return 1;
+}
+
 /** Front-back tilt metrics from the side-view photo (requirements doc section 3.3). */
 export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
   const cog = computeCenterOfGravity(kp);
+  const facingDir = detectFacingDir(kp);
 
   const defs: { def: MetricDef; compute: () => { value: number; estimated: boolean; available: boolean } }[] = [
     {
@@ -191,7 +219,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
       compute: () => {
         const ankleR = pick(kp, "ankleR");
         if (!ankleR || !cog) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromVertical(ankleR, cog), estimated: ankleR.estimated || cog.estimated, available: true };
+        return { value: angleFromVerticalSigned(ankleR, cog, facingDir), estimated: ankleR.estimated || cog.estimated, available: true };
       },
     },
     {
@@ -200,7 +228,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const trochanterR = pick(kp, "trochanterR");
         const shoulderR = pick(kp, "shoulderR");
         if (!trochanterR || !shoulderR) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromVertical(trochanterR, shoulderR), estimated: trochanterR.estimated || shoulderR.estimated, available: true };
+        return { value: angleFromVerticalSigned(trochanterR, shoulderR, facingDir), estimated: trochanterR.estimated || shoulderR.estimated, available: true };
       },
     },
     {
@@ -209,7 +237,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const ankleR = pick(kp, "ankleR");
         const trochanterR = pick(kp, "trochanterR");
         if (!ankleR || !trochanterR) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromVertical(ankleR, trochanterR), estimated: ankleR.estimated || trochanterR.estimated, available: true };
+        return { value: angleFromVerticalSigned(ankleR, trochanterR, facingDir), estimated: ankleR.estimated || trochanterR.estimated, available: true };
       },
     },
     {
@@ -218,7 +246,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const earR = pick(kp, "earR");
         const eyeR = pick(kp, "eyeR");
         if (!earR || !eyeR) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromHorizontal(earR, eyeR), estimated: earR.estimated || eyeR.estimated, available: true };
+        return { value: angleFromHorizontalSigned(earR, eyeR, facingDir), estimated: earR.estimated || eyeR.estimated, available: true };
       },
     },
     {
@@ -227,7 +255,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const shoulderR = pick(kp, "shoulderR");
         const earR = pick(kp, "earR");
         if (!shoulderR || !earR) return { value: NaN, estimated: false, available: false };
-        return { value: horizontalOffset(shoulderR, earR), estimated: shoulderR.estimated || earR.estimated, available: true };
+        return { value: horizontalOffsetSigned(shoulderR, earR, facingDir), estimated: shoulderR.estimated || earR.estimated, available: true };
       },
     },
     {
@@ -236,10 +264,14 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const asisR = pick(kp, "asisR");
         const psisR = pick(kp, "psisR");
         if (!asisR || !psisR) return { value: NaN, estimated: false, available: false };
-        return { value: angleFromHorizontal(asisR, psisR), estimated: asisR.estimated || psisR.estimated, available: true };
+        return { value: angleFromHorizontalSigned(psisR, asisR, facingDir), estimated: asisR.estimated || psisR.estimated, available: true };
       },
     },
     {
+      // angleBetweenSegments is direction-agnostic (0-180, magnitude only)
+      // and reads ~180 for a straight ankle-trochanter-shoulder line, so we
+      // report the deviation from straight (180 - angle) to keep this
+      // metric's "0 = neutral" convention consistent with every other one.
       def: { key: "lumbarOffsetFB", label: "腰の前後位置ずれ", category: "frontBack", view: "side", unit: "deg", referenceBand: 5, requiredPoints: ["ankleR", "trochanterR", "shoulderR"] },
       compute: () => {
         const ankleR = pick(kp, "ankleR");
@@ -247,13 +279,15 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const shoulderR = pick(kp, "shoulderR");
         if (!ankleR || !trochanterR || !shoulderR) return { value: NaN, estimated: false, available: false };
         return {
-          value: angleBetweenSegments(ankleR, trochanterR, shoulderR),
+          value: 180 - angleBetweenSegments(ankleR, trochanterR, shoulderR),
           estimated: ankleR.estimated || trochanterR.estimated || shoulderR.estimated,
           available: true,
         };
       },
     },
     {
+      // Same "deviation from straight" convention as lumbarOffsetFB: 0 for
+      // a fully extended knee, larger for more flexion.
       def: { key: "kneeFlexion", label: "膝の曲がり度合い", category: "frontBack", view: "side", unit: "deg", referenceBand: 5, requiredPoints: ["ankleR", "kneeR", "trochanterR"] },
       compute: () => {
         const ankleR = pick(kp, "ankleR");
@@ -261,7 +295,7 @@ export function computeFrontBackMetrics(kp: KeypointMap): MetricResult[] {
         const trochanterR = pick(kp, "trochanterR");
         if (!ankleR || !kneeR || !trochanterR) return { value: NaN, estimated: false, available: false };
         return {
-          value: angleBetweenSegments(ankleR, kneeR, trochanterR),
+          value: 180 - angleBetweenSegments(ankleR, kneeR, trochanterR),
           estimated: ankleR.estimated || kneeR.estimated || trochanterR.estimated,
           available: true,
         };
